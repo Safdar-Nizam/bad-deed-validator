@@ -1,0 +1,39 @@
+# ─── Secrets ──────────────────────────────────────────
+# NEVER commit the real .env — it contains your API key.
+# Only .env.example (with placeholders) goes into the repo.
+.env
+.env.local
+.env.*.local
+
+# ─── Python ───────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# ─── Virtual environments ─────────────────────────────
+.venv/
+venv/
+ENV/
+
+# ─── IDE ──────────────────────────────────────────────
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# ─── Testing / Linting ───────────────────────────────
+.pytest_cache/
+.coverage
+htmlcov/
+.mypy_cache/
+.ruff_cache/
+
+# ─── OS junk ─────────────────────────────────────────
+.DS_Store
+Thumbs.db

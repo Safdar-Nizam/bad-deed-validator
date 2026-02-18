@@ -1,0 +1,18 @@
+{
+  "doc_id": "DEED-TRUST-0042",
+  "county_raw": "S. Clara",
+  "state": "CA",
+  "date_signed": "2024-01-15",
+  "date_recorded": "2024-01-10",
+  "grantor": "T.E.S.L.A. Holdings LLC",
+  "grantee": "John & Sarah Connor",
+  "amount_numeric_raw": "$1,250,000.00",
+  "amount_words_raw": "One Million Two Hundred Thousand Dollars",
+  "apn": "992-001-XA",
+  "status": "PRELIMINARY",
+  "source_text_hash": "placeholder",
+  "llm_meta": {
+    "model": "fixture",
+    "extraction_timestamp": "2024-01-01T00:00:00+00:00"
+  }
+}

@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Safdar Does Not Let a Bad Deed Slide By</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #f4f6fb;
+    --surface: #ffffff;
+    --surface2: #f0f2f8;
+    --border: #e2e6ef;
+    --border-hover: #c9cfdd;
+    --text: #1e2a3a;
+    --text-mid: #475569;
+    --text-dim: #8492a6;
+    --accent: #4f46e5;
+    --accent-light: #e8e6fb;
+    --accent-glow: rgba(79, 70, 229, .12);
+    --green: #059669;
+    --green-light: #d1fae5;
+    --green-bg: rgba(5, 150, 105, .08);
+    --red: #dc2626;
+    --red-light: #fee2e2;
+    --red-bg: rgba(220, 38, 38, .06);
+    --amber: #d97706;
+    --amber-light: #fef3c7;
+    --amber-bg: rgba(217, 119, 6, .07);
+    --gray: #94a3b8;
+    --gray-light: #f1f5f9;
+    --font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    --mono: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+    --radius: 14px;
+    --shadow-sm: 0 1px 3px rgba(0,0,0,.06), 0 1px 2px rgba(0,0,0,.04);
+    --shadow-md: 0 4px 14px rgba(0,0,0,.07), 0 2px 6px rgba(0,0,0,.04);
+  }
+
+  body {
+    font-family: var(--font);
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+    min-height: 100vh;
+  }
+
+  /* ── Top bar ────────────────────────────────────────────────────── */
+  .topbar {
+    background: rgba(255,255,255,.88);
+    border-bottom: 1px solid var(--border);
+    padding: .8rem 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    backdrop-filter: blur(12px);
+  }
+  .topbar-brand { display: flex; align-items: center; gap: .6rem; }
+  .topbar-logo {
+    width: 34px; height: 34px;
+    background: var(--accent);
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.1rem; color: #fff; font-weight: 800;
+    box-shadow: 0 2px 8px var(--accent-glow);
+  }
+  .topbar-title { font-size: .95rem; font-weight: 700; }
+  .topbar-trust {
+    display: flex; align-items: center; gap: .4rem;
+    font-size: .75rem; color: var(--text-dim);
+    background: var(--surface2); padding: .3rem .8rem;
+    border-radius: 999px; border: 1px solid var(--border);
+  }
+  .topbar-trust .pulse {
+    width: 7px; height: 7px; border-radius: 50%;
+    background: var(--green);
+    animation: pulse 2s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(5,150,105,.4); }
+    50% { box-shadow: 0 0 0 5px rgba(5,150,105,0); }
+  }
+
+  /* ── Layout ─────────────────────────────────────────────────────── */
+  .layout {
+    max-width: 1400px; margin: 0 auto; padding: 1.5rem;
+    display: grid; grid-template-columns: 1fr 380px;
+    gap: 1.5rem; align-items: start;
+  }
+  .main-col { min-width: 0; }
+
+  /* ── Hero ───────────────────────────────────────────────────────── */
+  .hero {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 2rem 2.5rem;
+    margin-bottom: 1.5rem;
+    box-shadow: var(--shadow-sm);
+    position: relative; overflow: hidden;
+  }
+  .hero::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px;
+    background: linear-gradient(90deg, var(--accent), #7c3aed, var(--accent));
+    background-size: 200%; animation: gradient 4s ease infinite;
+  }
+  @keyframes gradient { 50% { background-position: 100% 0; } }
+  .hero h1 { font-size: 1.65rem; font-weight: 800; margin-bottom: .35rem; letter-spacing: -.02em; }
+  .hero h1 span { color: var(--accent); }
+  .hero p { color: var(--text-mid); font-size: .92rem; max-width: 650px; }
+  .hero-stats { display: flex; gap: 2rem; margin-top: 1.2rem; flex-wrap: wrap; }
+  .hero-stat { display: flex; flex-direction: column; }
+  .hero-stat .num { font-size: 1.4rem; font-weight: 800; color: var(--accent); font-family: var(--mono); }
+  .hero-stat .lbl { font-size: .72rem; text-transform: uppercase; letter-spacing: .06em; color: var(--text-dim); font-weight: 600; }
+
+  /* ── Input ──────────────────────────────────────────────────────── */
+  .input-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 1.5rem;
+    margin-bottom: 1.5rem; box-shadow: var(--shadow-sm);
+  }
+  .input-card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: .8rem; }
+  .input-card-header label { font-size: .82rem; font-weight: 700; color: var(--text-mid); text-transform: uppercase; letter-spacing: .05em; }
+  .input-card-header .char-count { font-size: .75rem; color: var(--text-dim); font-family: var(--mono); }
+  textarea {
+    width: 100%; min-height: 200px; padding: 1rem 1.1rem;
+    background: var(--surface2); border: 1.5px solid var(--border);
+    border-radius: 10px; color: var(--text);
+    font-family: var(--mono); font-size: .8rem; line-height: 1.7;
+    resize: vertical; transition: all .2s;
+  }
+  textarea:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 4px var(--accent-glow); background: #fff; }
+  .btn-row { display: flex; gap: .6rem; margin-top: 1rem; }
+  button {
+    cursor: pointer; font-family: var(--font); font-size: .85rem; font-weight: 600;
+    border: none; border-radius: 10px; padding: .7rem 1.4rem;
+    transition: all .2s; display: inline-flex; align-items: center; gap: .4rem;
+  }
+  .btn-primary { background: var(--accent); color: #fff; box-shadow: 0 2px 10px var(--accent-glow); }
+  .btn-primary:hover { background: #4338ca; transform: translateY(-1px); }
+  .btn-primary:active { transform: translateY(0); }
+  .btn-primary:disabled { opacity: .55; cursor: not-allowed; transform: none; }
+  .btn-ghost { background: transparent; color: var(--text-mid); border: 1.5px solid var(--border); }
+  .btn-ghost:hover { border-color: var(--border-hover); color: var(--text); background: var(--surface2); }
+
+  .spinner { display: none; width: 16px; height: 16px; border: 2px solid rgba(255,255,255,.3); border-top-color: #fff; border-radius: 50%; animation: spin .55s linear infinite; }
+  .spinner.active { display: inline-block; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ── Pipeline cards ─────────────────────────────────────────────── */
+  .pipeline-section { display: none; margin-bottom: 1.5rem; }
+  .pipeline-section.visible { display: block; }
+  .section-label { font-size: .78rem; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--text-dim); margin-bottom: .8rem; display: flex; align-items: center; gap: .4rem; }
+  .step-cards { display: grid; gap: .75rem; }
+  .step-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 12px; padding: 1.1rem 1.3rem; box-shadow: var(--shadow-sm);
+    opacity: 0; transform: translateY(10px); animation: fadeUp .35s ease forwards;
+  }
+  .step-card:nth-child(1) { animation-delay: .05s; }
+  .step-card:nth-child(2) { animation-delay: .15s; }
+  .step-card:nth-child(3) { animation-delay: .25s; }
+  .step-card:nth-child(4) { animation-delay: .35s; }
+  @keyframes fadeUp { to { opacity: 1; transform: translateY(0); } }
+  .step-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: .65rem; }
+  .step-name { font-weight: 700; font-size: .88rem; display: flex; align-items: center; gap: .45rem; }
+  .step-badge { display: inline-flex; align-items: center; padding: .15rem .55rem; border-radius: 999px; font-size: .68rem; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; }
+  .step-badge.success { background: var(--green-light); color: var(--green); }
+  .step-badge.warning { background: var(--amber-light); color: var(--amber); }
+  .step-badge.fail    { background: var(--red-light);   color: var(--red);   }
+  .step-badge.pass    { background: var(--green-light); color: var(--green); }
+  .step-time { font-size: .72rem; color: var(--text-dim); font-family: var(--mono); background: var(--surface2); padding: .15rem .5rem; border-radius: 6px; }
+  .step-data { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: .25rem .6rem; }
+  .step-data-item { display: flex; flex-direction: column; padding: .25rem 0; }
+  .step-data-item .key { font-size: .67rem; text-transform: uppercase; letter-spacing: .04em; color: var(--text-dim); font-weight: 600; }
+  .step-data-item .val { font-size: .8rem; font-family: var(--mono); color: var(--text); word-break: break-all; }
+
+  /* ── Result banner ──────────────────────────────────────────────── */
+  .result-section { display: none; margin-bottom: 1.5rem; }
+  .result-section.visible { display: block; }
+  .result-banner {
+    border-radius: var(--radius); padding: 1.15rem 1.5rem;
+    display: flex; align-items: center; gap: .9rem;
+    margin-bottom: .75rem; font-weight: 700; font-size: 1.05rem;
+    box-shadow: var(--shadow-sm);
+    opacity: 0; animation: fadeUp .4s ease forwards; animation-delay: .5s;
+  }
+  .result-banner.invalid, .result-banner.rejected {
+    background: var(--red-light); border: 1.5px solid rgba(220,38,38,.2); color: var(--red);
+  }
+  .result-banner.valid {
+    background: var(--green-light); border: 1.5px solid rgba(5,150,105,.2); color: var(--green);
+  }
+  .result-icon { font-size: 1.5rem; }
+
+  /* ── Error cards ────────────────────────────────────────────────── */
+  .error-list { display: grid; gap: .6rem; }
+  .error-card {
+    background: var(--surface); border: 1.5px solid var(--border);
+    border-left: 4px solid var(--red); border-radius: 10px;
+    padding: 1rem 1.2rem; box-shadow: var(--shadow-sm);
+    opacity: 0; animation: fadeUp .35s ease forwards;
+  }
+  .error-card:nth-child(1) { animation-delay: .65s; }
+  .error-card:nth-child(2) { animation-delay: .8s; }
+  .error-card:nth-child(3) { animation-delay: .95s; }
+  .error-card:nth-child(4) { animation-delay: 1.1s; }
+  .error-code { display: inline-block; font-family: var(--mono); font-size: .72rem; font-weight: 700; color: var(--red); background: var(--red-light); padding: .12rem .5rem; border-radius: 5px; margin-bottom: .35rem; }
+  .error-msg { font-size: .85rem; line-height: 1.5; color: var(--text); margin-bottom: .5rem; }
+  .error-details { display: flex; flex-wrap: wrap; gap: .35rem; }
+  .error-detail-chip { font-family: var(--mono); font-size: .7rem; padding: .15rem .5rem; background: var(--surface2); border: 1px solid var(--border); border-radius: 5px; color: var(--text-mid); }
+
+  /* ── Sidebar checklist ──────────────────────────────────────────── */
+  .sidebar { position: sticky; top: 75px; }
+  .checklist-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow-sm); overflow: hidden; }
+  .checklist-header { padding: 1rem 1.2rem .8rem; border-bottom: 1px solid var(--border); background: var(--surface2); }
+  .checklist-header h3 { font-size: .82rem; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: var(--text-mid); margin-bottom: .15rem; }
+  .checklist-header p { font-size: .73rem; color: var(--text-dim); }
+  .checklist-progress { margin-top: .6rem; height: 5px; background: var(--border); border-radius: 999px; overflow: hidden; }
+  .checklist-progress-bar { height: 100%; width: 0%; border-radius: 999px; transition: width .6s ease, background .3s; background: var(--accent); }
+  .checklist-progress-bar.has-errors { background: var(--red); }
+  .checklist-progress-bar.all-pass { background: var(--green); }
+
+  .checklist-items { list-style: none; padding: .4rem 0; }
+
+  .checklist-item {
+    display: flex; align-items: flex-start; gap: .6rem;
+    padding: .55rem 1.2rem; font-size: .78rem;
+    color: var(--text-mid); transition: all .25s;
+    border-left: 3px solid transparent;
+  }
+  .checklist-item.running { background: var(--accent-light); color: var(--accent); font-weight: 600; border-left-color: var(--accent); }
+  .checklist-item.passed  { color: var(--green); font-weight: 600; }
+  .checklist-item.failed  { color: var(--red); font-weight: 600; background: var(--red-bg); border-left-color: var(--red); }
+  .checklist-item.blocked { color: var(--gray); opacity: .55; }
+  .checklist-item.na      { color: var(--gray); opacity: .45; }
+
+  .check-icon {
+    width: 20px; height: 20px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: .65rem; flex-shrink: 0; transition: all .3s;
+    border: 2px solid var(--border); color: transparent; background: var(--surface);
+    margin-top: 1px;
+  }
+  .checklist-item.passed .check-icon  { background: var(--green); border-color: var(--green); color: #fff; }
+  .checklist-item.failed .check-icon  { background: var(--red); border-color: var(--red); color: #fff; }
+  .checklist-item.blocked .check-icon { background: var(--gray-light); border-color: var(--gray); color: var(--gray); }
+  .checklist-item.na .check-icon      { background: var(--gray-light); border-color: #cbd5e1; color: #cbd5e1; }
+  .checklist-item.running .check-icon { border-color: var(--accent); background: var(--accent-light); color: var(--accent); animation: checkPulse .8s ease-in-out infinite; }
+  @keyframes checkPulse { 50% { transform: scale(1.15); } }
+
+  .check-label { flex: 1; min-width: 0; }
+  .check-label .name { display: block; line-height: 1.3; }
+  .check-label .explain {
+    display: block; font-size: .68rem; font-weight: 400;
+    color: var(--text-dim); margin-top: .1rem;
+    line-height: 1.35; word-break: break-word;
+  }
+  .checklist-item.passed .check-label .explain { color: var(--green); opacity: .75; }
+  .checklist-item.failed .check-label .explain { color: var(--red); opacity: .85; }
+  .checklist-item.blocked .check-label .explain { color: var(--gray); }
+  .checklist-item.na .check-label .explain { color: #cbd5e1; }
+
+  .checklist-summary {
+    padding: .8rem 1.2rem; border-top: 1px solid var(--border);
+    background: var(--surface2); font-size: .78rem;
+    color: var(--text-dim); text-align: center; font-weight: 600;
+  }
+  .checklist-summary.pass { color: var(--green); background: var(--green-light); }
+  .checklist-summary.fail { color: var(--red); background: var(--red-light); }
+
+  /* ── Footer ─────────────────────────────────────────────────────── */
+  footer { text-align: center; padding: 2rem 0 1.5rem; color: var(--text-dim); font-size: .78rem; grid-column: 1 / -1; }
+
+  @media (max-width: 960px) {
+    .layout { grid-template-columns: 1fr; padding: 1rem; }
+    .sidebar { position: static; }
+    .hero { padding: 1.5rem; }
+    .hero h1 { font-size: 1.3rem; }
+    .step-data { grid-template-columns: 1fr; }
+    .topbar { padding: .7rem 1rem; }
+    .topbar-trust { display: none; }
+  }
+</style>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet" />
+</head>
+<body>
+
+<!-- Top bar -->
+<div class="topbar">
+  <div class="topbar-brand">
+    <div class="topbar-logo">S</div>
+    <span class="topbar-title">Safdar's Deed Validator</span>
+  </div>
+  <div class="topbar-trust">
+    <span class="pulse"></span>
+    LLM extracts &middot; Python validates &middot; Never trusts
+  </div>
+</div>
+
+<div class="layout">
+  <div class="main-col">
+
+    <!-- Hero -->
+    <div class="hero">
+      <h1><span>Safdar</span> Does Not Let a Bad Deed Slide By</h1>
+      <p>Paranoid deed validation &mdash; an LLM extracts fields from messy OCR text, then deterministic Python code catches every inconsistency. Nothing is auto-fixed. Multi-state support for CA, FL, and NY.</p>
+      <div class="hero-stats">
+        <div class="hero-stat"><span class="num" id="heroChecks">16</span><span class="lbl">Validation Checks</span></div>
+        <div class="hero-stat"><span class="num">0</span><span class="lbl">Auto-Corrections</span></div>
+        <div class="hero-stat"><span class="num">3</span><span class="lbl">States Supported</span></div>
+        <div class="hero-stat"><span class="num">100%</span><span class="lbl">Deterministic</span></div>
+      </div>
+    </div>
+
+    <!-- Input -->
+    <div class="input-card">
+      <div class="input-card-header">
+        <label>OCR Deed Text</label>
+        <span class="char-count" id="charCount">0 chars</span>
+      </div>
+      <textarea id="ocrInput" spellcheck="false" placeholder="Paste your messy OCR deed text here, or click Load Sample..."></textarea>
+      <div class="btn-row">
+        <button class="btn-primary" id="btnValidate" onclick="runValidation()">
+          <span id="btnText">Validate Document</span>
+          <span class="spinner" id="btnSpinner"></span>
+        </button>
+        <button class="btn-ghost" onclick="loadDefault()">Load Sample</button>
+        <button class="btn-ghost" onclick="clearAll()">Clear</button>
+      </div>
+    </div>
+
+    <!-- Pipeline steps -->
+    <div class="pipeline-section" id="pipelineSection">
+      <div class="section-label">Pipeline Steps</div>
+      <div class="step-cards" id="stepCards"></div>
+    </div>
+
+    <!-- Result -->
+    <div class="result-section" id="resultSection">
+      <div class="section-label">Result</div>
+      <div id="resultBanner"></div>
+      <div class="error-list" id="errorList"></div>
+    </div>
+
+  </div>
+
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <div class="checklist-card">
+      <div class="checklist-header">
+        <h3>Validation Checklist</h3>
+        <p>Every check a deed must pass &mdash; with reasons</p>
+        <div class="checklist-progress">
+          <div class="checklist-progress-bar" id="progressBar"></div>
+        </div>
+      </div>
+      <ul class="checklist-items" id="checklistItems">
+        <!-- populated by JS from API response -->
+      </ul>
+      <div class="checklist-summary" id="checklistSummary">
+        Waiting for validation...
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    Built with paranoid engineering &middot; LLM extraction via OpenAI &middot; Zero auto-corrections &middot; Multi-state: CA, FL, NY
+  </footer>
+</div>
+
+<script>
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+// ── Init ─────────────────────────────────────────────────────────────────────
+function initChecklist() {
+  const ul = document.getElementById('checklistItems');
+  ul.innerHTML = '<li class="checklist-item" style="justify-content:center;padding:1rem;color:var(--text-dim);font-size:.78rem;">Run validation to see results</li>';
+  document.getElementById('progressBar').style.width = '0%';
+  document.getElementById('progressBar').className = 'checklist-progress-bar';
+  document.getElementById('checklistSummary').textContent = 'Waiting for validation...';
+  document.getElementById('checklistSummary').className = 'checklist-summary';
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  initChecklist();
+  loadDefault();
+  document.getElementById('ocrInput').addEventListener('input', function() {
+    document.getElementById('charCount').textContent = this.value.length + ' chars';
+  });
+});
+
+async function loadDefault() {
+  try {
+    const resp = await fetch('/api/default-text');
+    const data = await resp.json();
+    document.getElementById('ocrInput').value = data.text;
+    document.getElementById('charCount').textContent = data.text.length + ' chars';
+  } catch { document.getElementById('ocrInput').value = '(Could not load default text)'; }
+}
+
+function clearAll() {
+  document.getElementById('ocrInput').value = '';
+  document.getElementById('charCount').textContent = '0 chars';
+  document.getElementById('pipelineSection').classList.remove('visible');
+  document.getElementById('resultSection').classList.remove('visible');
+  initChecklist();
+}
+
+// ── Animate checklist from server data ───────────────────────────────────────
+async function animateChecklist(checkResults) {
+  const ul = document.getElementById('checklistItems');
+  ul.innerHTML = '';
+
+  // Build all items first (hidden)
+  checkResults.forEach(cr => {
+    const li = document.createElement('li');
+    li.className = 'checklist-item';
+    li.dataset.check = cr.id;
+    li.innerHTML = `
+      <span class="check-icon"></span>
+      <span class="check-label">
+        <span class="name">${cr.label}</span>
+        <span class="explain"></span>
+      </span>
+    `;
+    ul.appendChild(li);
+  });
+
+  let passCount = 0, failCount = 0, blockedCount = 0, naCount = 0;
+  const total = checkResults.length;
+
+  for (let i = 0; i < checkResults.length; i++) {
+    const cr = checkResults[i];
+    const li = ul.children[i];
+    const icon = li.querySelector('.check-icon');
+    const explain = li.querySelector('.explain');
+
+    // Running state (skip for blocked/na)
+    if (cr.status !== 'blocked' && cr.status !== 'na') {
+      li.className = 'checklist-item running';
+      icon.innerHTML = '...';
+      await sleep(100);
+    }
+
+    // Final state
+    if (cr.status === 'pass') {
+      li.className = 'checklist-item passed';
+      icon.innerHTML = '&#x2713;';
+      passCount++;
+    } else if (cr.status === 'fail') {
+      li.className = 'checklist-item failed';
+      icon.innerHTML = '&#x2717;';
+      failCount++;
+    } else if (cr.status === 'blocked') {
+      li.className = 'checklist-item blocked';
+      icon.innerHTML = '&#x2014;';
+      blockedCount++;
+    } else if (cr.status === 'na') {
+      li.className = 'checklist-item na';
+      icon.innerHTML = 'N/A';
+      naCount++;
+    }
+
+    explain.textContent = cr.explanation;
+
+    // Update progress
+    const pct = ((i + 1) / total * 100).toFixed(0);
+    const bar = document.getElementById('progressBar');
+    bar.style.width = pct + '%';
+    if (failCount > 0 || blockedCount > 0) bar.className = 'checklist-progress-bar has-errors';
+    else bar.className = 'checklist-progress-bar all-pass';
+
+    if (cr.status !== 'blocked' && cr.status !== 'na') await sleep(60);
+  }
+
+  // Summary
+  const summary = document.getElementById('checklistSummary');
+  const active = passCount + failCount;
+  if (failCount === 0 && blockedCount === 0) {
+    summary.textContent = `All ${active} applicable checks passed`;
+    summary.className = 'checklist-summary pass';
+  } else if (blockedCount > 0) {
+    summary.textContent = `Rejected at preflight -- ${blockedCount} checks blocked`;
+    summary.className = 'checklist-summary fail';
+  } else {
+    summary.textContent = `${failCount} failed, ${passCount} passed of ${active} active checks`;
+    summary.className = 'checklist-summary fail';
+  }
+}
+
+// ── Main validation ──────────────────────────────────────────────────────────
+async function runValidation() {
+  const btn = document.getElementById('btnValidate');
+  const btnText = document.getElementById('btnText');
+  const spinner = document.getElementById('btnSpinner');
+  const text = document.getElementById('ocrInput').value.trim();
+  if (!text) { alert('Please enter or load OCR text first.'); return; }
+
+  btn.disabled = true;
+  btnText.textContent = 'Validating...';
+  spinner.classList.add('active');
+  document.getElementById('pipelineSection').classList.remove('visible');
+  document.getElementById('resultSection').classList.remove('visible');
+  initChecklist();
+
+  try {
+    const resp = await fetch('/api/validate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ocr_text: text }),
+    });
+    const data = await resp.json();
+
+    renderPipeline(data.steps);
+    await animateChecklist(data.check_results || []);
+    renderResult(data.result, data.errors);
+  } catch (err) {
+    alert('Request failed: ' + err.message);
+  } finally {
+    btn.disabled = false;
+    btnText.textContent = 'Validate Document';
+    spinner.classList.remove('active');
+  }
+}
+
+function renderPipeline(steps) {
+  const container = document.getElementById('stepCards');
+  container.innerHTML = '';
+  const icons = {
+    'Document Detection': '\u{1F50D}',
+    'LLM Extraction': '\u{1F916}',
+    'County Enrichment': '\u{1F5FA}\uFE0F',
+    'Deterministic Validation': '\u{1F6E1}\uFE0F',
+  };
+  steps.forEach(step => {
+    const card = document.createElement('div');
+    card.className = 'step-card';
+    const dataHTML = Object.entries(step.data)
+      .filter(([k]) => k !== 'checks_run')
+      .map(([k, v]) => {
+        let display = v === null ? '\u2014' : Array.isArray(v) ? v.join(', ') : v;
+        return `<div class="step-data-item"><span class="key">${k.replace(/_/g, ' ')}</span><span class="val">${display}</span></div>`;
+      }).join('');
+    card.innerHTML = `
+      <div class="step-top">
+        <div class="step-name"><span>${icons[step.step] || '\u2699\uFE0F'}</span>${step.step}<span class="step-badge ${step.status}">${step.status}</span></div>
+        <span class="step-time">${step.duration_ms} ms</span>
+      </div>
+      <div class="step-data">${dataHTML}</div>
+    `;
+    container.appendChild(card);
+  });
+  document.getElementById('pipelineSection').classList.add('visible');
+}
+
+function renderResult(result, errors) {
+  const banner = document.getElementById('resultBanner');
+  const list = document.getElementById('errorList');
+
+  if (result === 'REJECTED') {
+    banner.className = 'result-banner rejected';
+    banner.innerHTML = `
+      <span class="result-icon">\u{1F6AB}</span>
+      <div>
+        <div>INPUT REJECTED &mdash; NOT A DEED</div>
+        <div style="font-size:.8rem;font-weight:400;opacity:.85;margin-top:2px">
+          This input does not appear to be a property deed document. No validation was performed.
+        </div>
+      </div>
+    `;
+    list.innerHTML = errors.map(err => `
+      <div class="error-card">
+        <div class="error-code">${err.code}</div>
+        <div class="error-msg">${err.message}</div>
+      </div>
+    `).join('');
+  } else if (result === 'INVALID') {
+    banner.className = 'result-banner invalid';
+    banner.innerHTML = `
+      <span class="result-icon">\u26D4</span>
+      <div>
+        <div>DOCUMENT REJECTED</div>
+        <div style="font-size:.8rem;font-weight:400;opacity:.85;margin-top:2px">
+          ${errors.length} validation error${errors.length > 1 ? 's' : ''} found &mdash; no auto-corrections applied
+        </div>
+      </div>
+    `;
+    list.innerHTML = errors.map(err => {
+      const chips = Object.entries(err.details || {}).map(([k, v]) => {
+        const display = Array.isArray(v) ? v.join(', ') : (typeof v === 'number' ? v.toLocaleString() : v);
+        return `<span class="error-detail-chip">${k}: ${display}</span>`;
+      }).join('');
+      return `<div class="error-card"><div class="error-code">${err.code}</div><div class="error-msg">${err.message}</div><div class="error-details">${chips}</div></div>`;
+    }).join('');
+  } else {
+    banner.className = 'result-banner valid';
+    banner.innerHTML = `
+      <span class="result-icon">\u2705</span>
+      <div>
+        <div>DOCUMENT VALID</div>
+        <div style="font-size:.8rem;font-weight:400;opacity:.85;margin-top:2px">All validation checks passed</div>
+      </div>
+    `;
+    list.innerHTML = '';
+  }
+  document.getElementById('resultSection').classList.add('visible');
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,18 @@
+[
+  { "name": "Santa Clara", "state": "CA", "tax_rate": 0.012 },
+  { "name": "San Mateo", "state": "CA", "tax_rate": 0.011 },
+  { "name": "Santa Cruz", "state": "CA", "tax_rate": 0.010 },
+
+  { "name": "Miami-Dade", "state": "FL", "tax_rate": 0.006, "doc_stamp_rate": 0.007, "has_surtax": true, "surtax_rate": 0.0045 },
+  { "name": "Broward", "state": "FL", "tax_rate": 0.006, "doc_stamp_rate": 0.007, "has_surtax": false },
+  { "name": "Palm Beach", "state": "FL", "tax_rate": 0.006, "doc_stamp_rate": 0.007, "has_surtax": false },
+  { "name": "Orange", "state": "FL", "tax_rate": 0.006, "doc_stamp_rate": 0.007, "has_surtax": false },
+  { "name": "Hillsborough", "state": "FL", "tax_rate": 0.006, "doc_stamp_rate": 0.007, "has_surtax": false },
+
+  { "name": "New York", "state": "NY", "tax_rate": 0.01025, "transfer_tax_rate": 0.004, "mansion_tax_threshold": 1000000, "mansion_tax_rate": 0.01 },
+  { "name": "Kings", "state": "NY", "tax_rate": 0.01025, "transfer_tax_rate": 0.004, "mansion_tax_threshold": 1000000, "mansion_tax_rate": 0.01 },
+  { "name": "Queens", "state": "NY", "tax_rate": 0.01025, "transfer_tax_rate": 0.004, "mansion_tax_threshold": 1000000, "mansion_tax_rate": 0.01 },
+  { "name": "Westchester", "state": "NY", "tax_rate": 0.0105, "transfer_tax_rate": 0.004, "mansion_tax_threshold": 1000000, "mansion_tax_rate": 0.01 },
+  { "name": "Nassau", "state": "NY", "tax_rate": 0.010, "transfer_tax_rate": 0.004, "mansion_tax_threshold": 1000000, "mansion_tax_rate": 0.01 },
+  { "name": "Suffolk", "state": "NY", "tax_rate": 0.0098, "transfer_tax_rate": 0.004, "mansion_tax_threshold": 1000000, "mansion_tax_rate": 0.01 }
+]

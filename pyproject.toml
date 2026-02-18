@@ -1,0 +1,36 @@
+[build-system]
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.backends._legacy:_Backend"
+
+[project]
+name = "bad-deed-validator"
+version = "1.0.0"
+description = "Paranoid deed document validator: LLM extracts, Python validates."
+requires-python = ">=3.11"
+dependencies = [
+    "pydantic>=2.5,<3",
+    "rapidfuzz>=3.5,<4",
+    "openai>=1.10,<2",
+    "python-dotenv>=1.0,<2",
+]
+
+[project.optional-dependencies]
+web = [
+    "fastapi>=0.109,<1",
+    "uvicorn>=0.25,<1",
+]
+dev = [
+    "pytest>=7.4,<9",
+    "ruff>=0.2",
+]
+
+[project.scripts]
+deed-validator = "deed_validator.cli:main"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+
+[tool.ruff]
+target-version = "py311"
+line-length = 100
