@@ -2,13 +2,13 @@
 
 A Python tool that takes messy OCR-scanned property deed text, uses an LLM **only** to extract fields, and then rigorously validates everything with deterministic code before accepting it.
 
-If an AI hallucinates a number on a deed, someone could accidentally record a fraudulent transaction. This project exists to make that impossible. The LLM is a field-extraction tool — it's never trusted, never authoritative, and never allowed to "fix" anything.
+If an AI hallucinates a number on a deed, someone could accidentally record a fraudulent transaction. This project exists to make that impossible. The LLM is a field-extraction tool it's never trusted, never authoritative, and never allowed to "fix" anything.
 
 ---
 
 ## The Problem
 
-Real-world OCR output is messy. Dates might be flipped, dollar amounts might contradict each other, county names might be abbreviated. An LLM can do a good job of *reading* that mess and pulling out structured fields — but it can't be trusted to *validate* them. What if it silently "corrects" a wrong date? What if it picks one dollar amount over another?
+Real-world OCR output is messy. Dates might be flipped, dollar amounts might contradict each other, county names might be abbreviated. An LLM can do a good job of *reading* that mess and pulling out structured fields but it can't be trusted to *validate* them. What if it silently "corrects" a wrong date? What if it picks one dollar amount over another?
 
 This tool draws a hard line:
 
@@ -195,6 +195,7 @@ The validator handles state-specific rules for California, Florida, and New York
 - Counties: Santa Clara, San Mateo, Santa Cruz
 - APN format check: numeric dash-separated segments only
 - Closing cost: `amount x county_tax_rate`
+I also included the two locations this job opening applies to, New York and Miami, so that during the demo I can show how we can incorporate state specific rules and logic when we build this in production.
 
 ### Florida
 - Counties: Miami-Dade, Broward, Palm Beach, Orange, Hillsborough
@@ -295,19 +296,19 @@ bad-deed-validator/
 ## Design Decisions
 
 **Why doesn't the LLM validate anything?**
-Because LLMs hallucinate. If the deed says the recording date is before the signing date, an LLM might "helpfully" swap them. In financial document processing, that's not a feature — it's a liability. The LLM reads; deterministic code decides.
+Because LLMs hallucinate. If the deed says the recording date is before the signing date, an LLM might "helpfully" swap them. In financial document processing, that's not a feature it's a liability. The LLM reads; deterministic code decides.
 
 **Why collect all errors instead of failing on the first one?**
 So the user can fix everything in one pass. Discovering errors one at a time is frustrating and wastes cycles.
 
 **Why fuzzy matching for counties?**
-OCR output is messy. "S. Clara" should match "Santa Clara". But the fuzzy match has a hard threshold (80%) — below that, it's an explicit `UNKNOWN_COUNTY_ERROR`, not a guess.
+OCR output is messy. "S. Clara" should match "Santa Clara". But the fuzzy match has a hard threshold (80%) below that, it's an explicit `UNKNOWN_COUNTY_ERROR`, not a guess.
 
 **Why compute closing costs last?**
 A deed with a date error or an amount mismatch should never get a dollar estimate. Computing costs on bad data would be irresponsible. Closing costs are calculated only after all 16 checks pass.
 
 **Why SHA-256 the input text?**
-Traceability. The hash of the original OCR text is embedded in every extracted deed. If someone re-runs the pipeline on modified text, the hash changes — you can always trace a result back to its exact input.
+Traceability. The hash of the original OCR text is embedded in every extracted deed. If someone re-runs the pipeline on modified text, the hash changes you can always trace a result back to its exact input.
 
 **Why does the preflight check exist?**
 If someone types "hi" or pastes random text, there's no reason to burn an API call on it. A quick keyword scan (looking for "deed", "grantor", "county", etc.) rejects obvious non-deed input before the LLM is ever called.
