@@ -200,7 +200,7 @@ I also included the two locations this job opening applies to, New York and Miam
 ### Florida
 - Counties: Miami-Dade, Broward, Palm Beach, Orange, Hillsborough
 - Documentary stamp tax: $0.70 per $100 (0.7%)
-- Miami-Dade surtax: additional $0.45 per $100 — only in Miami-Dade
+- Miami-Dade surtax: additional $0.45 per $100 only in Miami-Dade
 - Closing cost: base tax + doc stamps + surtax (if applicable)
 
 ### New York
@@ -325,7 +325,7 @@ If someone types "hi" or pastes random text, there's no reason to burn an API ca
 ## Security
 
 - **`.env` is gitignored.** Only `.env.example` (with placeholder values) ships in the repo. Your real API key never touches GitHub.
-- **API keys are read from environment variables only** — never hardcoded, never logged.
+- **API keys are read from environment variables only** never hardcoded, never logged.
 - **LLM output is parsed as untrusted JSON.** Malformed responses raise `LLMOutputFormatError`.
 - **Tests never hit the network.** `conftest.py` clears the API key before every test.
 
