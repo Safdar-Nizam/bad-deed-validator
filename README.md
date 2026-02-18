@@ -39,7 +39,7 @@ pip install -e .
 python -m deed_validator
 ```
 
-That's it. No API key needed — without one, the tool uses a built-in fixture so you can see the full pipeline work.
+That's it. No API key needed without one, the tool uses a built-in fixture so you can see the full pipeline work.
 
 ### Want live LLM extraction?
 
