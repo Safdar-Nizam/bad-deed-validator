@@ -1,5 +1,5 @@
 # ─── Secrets ──────────────────────────────────────────
-# NEVER commit the real .env — it contains your API key.
+# NEVER commit the real .env it contains your API key and PEOPLE WILL USE IT WRONGLY.
 # Only .env.example (with placeholders) goes into the repo.
 .env
 .env.local
