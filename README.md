@@ -1,6 +1,6 @@
 # Bad Deed Validator
 
-A Python tool that takes messy OCR-scanned property deed text, uses an LLM **only** to extract fields, and then rigorously validates everything with deterministic code before accepting it.
+A Python tool that takes messy OCR-scanned property deed text, uses an LLM **only** to extract fields, and then rigorously validates everything with deterministic code in python before accepting it.
 
 If an AI hallucinates a number on a deed, someone could accidentally record a fraudulent transaction. This project exists to make that impossible. The LLM is a field-extraction tool it's never trusted, never authoritative, and never allowed to "fix" anything.
 
