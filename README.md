@@ -245,11 +245,12 @@ python -m deed_validator.server
 ```
 
 You can paste any OCR text or hit "Validate" to run the default sample. Non-deed input gets instantly rejected at preflight with all downstream checks shown as blocked.
-case 1: <img width="1858" height="943" alt="image" src="https://github.com/user-attachments/assets/672a22f5-6ac1-4f51-8aa4-1950f7946023" />
-case 2: <img width="1856" height="892" alt="image" src="https://github.com/user-attachments/assets/38dde23e-af18-48c7-ae91-215a47ef2a19" />
+
+case 1: when I send in "Hi"  <img width="1858" height="943" alt="image" src="https://github.com/user-attachments/assets/672a22f5-6ac1-4f51-8aa4-1950f7946023" />
+case 2: when I send in the test case given: <img width="1856" height="892" alt="image" src="https://github.com/user-attachments/assets/38dde23e-af18-48c7-ae91-215a47ef2a19" />
         <img width="1242" height="775" alt="image" src="https://github.com/user-attachments/assets/307fc333-97f6-4742-a7ca-09d2e2220dee" />
         <img width="1833" height="877" alt="image" src="https://github.com/user-attachments/assets/6d63f8b7-91d4-4e42-b18e-8375b6f4ce86" />
-case 3: <img width="1847" height="885" alt="image" src="https://github.com/user-attachments/assets/c6f5e0c5-6d5c-4618-ac97-8f72ad8bb013" />
+case 3: custom test case: <img width="1847" height="885" alt="image" src="https://github.com/user-attachments/assets/c6f5e0c5-6d5c-4618-ac97-8f72ad8bb013" />
         <img width="1848" height="507" alt="image" src="https://github.com/user-attachments/assets/1f0b66df-b9ac-400d-a990-42753ca1b98b" />
 
 
