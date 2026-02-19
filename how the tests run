@@ -1,0 +1,299 @@
+# Bad Deed Validator — Project Pitch
+
+## What This Project Does (The Elevator Version)
+
+This is a Python tool that takes ugly, error-filled OCR text from a property deed, uses an LLM to read it into structured data, and then **validates every single field with strict Python code** before accepting it.
+
+The core philosophy: **the AI reads, Python decides.** The LLM never validates, never corrects, and never "helpfully" fixes anything. If a deed has a bad date, a mismatched dollar amount, or a garbled county name, deterministic code catches it — not a probability model.
+
+---
+
+## Why It's Built This Way
+
+At Propy, deeds get recorded on a blockchain. If an LLM hallucinates a number or silently "corrects" a flipped date, that's a fraudulent transaction written to an immutable ledger. You can't undo that.
+
+So the system is **paranoid by design**. The LLM is treated like an untrusted employee who reads documents and fills out forms. A separate department (Python) checks every single field on that form before it goes anywhere.
+
+---
+
+## The Pipeline (4 Steps)
+
+```
+Raw OCR Text
+     |
+     v
+[0] PREFLIGHT — Is this even a deed? Quick keyword scan.
+     |            Rejects "hi", gibberish, code snippets.
+     |            Saves an API call.
+     v
+[1] LLM EXTRACTION — GPT-4.1-mini reads the OCR text and
+     |                 returns a JSON object. This is UNTRUSTED.
+     |                 The prompt says: "never fix typos, never
+     |                 correct dates, never reconcile contradictions."
+     v
+[2] COUNTY ENRICHMENT — "S. Clara" gets fuzzy-matched to "Santa Clara"
+     |                    using rapidfuzz (81% confidence, threshold is 80%).
+     |                    Tax rate gets attached.
+     v
+[3] VALIDATION — 16 deterministic Python checks run.
+     |             All errors collected. Nothing short-circuits.
+     v
+  INVALID (with typed errors) or VALID (with closing cost estimate)
+```
+
+The LLM only touches step 1. Everything after that is pure Python.
+
+---
+
+## The Three Bugs in the Sample Deed (And How Code Catches Them)
+
+The provided OCR text has three intentional errors:
+
+### 1. Date Order Error
+The deed was "Recorded: 2024-01-10" but "Signed: 2024-01-15". You can't record a deed five days before it's signed. Python parses both dates with `datetime.date.fromisoformat()` and does a simple `<` comparison. No AI involved — just a boolean check.
+
+### 2. Amount Mismatch ($50K Discrepancy)
+The numbers say `$1,250,000` but the words say "One Million Two Hundred Thousand" which is `$1,200,000`. Two independent parsers handle this: one strips `$` and commas from the digits, the other walks through English word tokens ("One" + "Million" + "Two" + "Hundred" + "Thousand") and builds the number mathematically. Then Python compares the results. `1,250,000 != 1,200,000` — that's an error, with the exact $50K difference reported.
+
+### 3. APN Format Error
+The parcel number `992-001-XA` has letters ("XA") in the last segment. California APNs must be numeric. The validator splits on dashes and checks each segment with `.isdigit()`.
+
+The system never silently picks one value over another. Both amounts are preserved in the data, and the discrepancy is flagged for a human to resolve.
+
+---
+
+## The LLM's Role (Intentionally Small)
+
+The LLM does exactly one thing: read messy text and output JSON. The system prompt explicitly tells it:
+
+> "You are a mechanical extraction tool, NOT a validator. Never fix typos. Never correct dates. Never reconcile contradictions."
+
+If you run the tool without an API key, it falls back to a static JSON fixture so the entire pipeline still works. Tests always use this path — they never hit the network.
+
+The LLM response is parsed as untrusted JSON. If it returns malformed output, a `LLMOutputFormatError` is raised. If it returns valid JSON with suspicious values, the 16 validation checks catch it downstream. The LLM has zero authority over whether a deed is accepted or rejected.
+
+---
+
+## The County Lookup ("S. Clara" Problem)
+
+The OCR says "S. Clara" but the reference database knows it as "Santa Clara". A simple dictionary lookup would fail.
+
+The solution uses `rapidfuzz` (fuzzy string matching):
+1. Normalize the input — lowercase, expand abbreviations ("S." becomes "Santa"), strip punctuation
+2. Compare against every county in `counties.json` using token-sort similarity
+3. Accept the match only if confidence >= 80%
+4. Below that threshold, it's a hard `UnknownCountyError` — not a guess
+
+"S. Clara" normalizes to "santa clara", matches the reference at ~81% confidence, and the tax rate (0.012) gets attached. The system is also multi-state aware — if a deed says "FL" but the matched county belongs to "NY", that's a `StateCountyMismatchError`.
+
+---
+
+## How the Test Suite Is Designed
+
+**114 tests, 8 test files, 0 network calls.**
+
+Tests never call the LLM. A `conftest.py` fixture forcibly clears the `OPENAI_API_KEY` before any test runs, even if you have a real key set. All extraction uses static fixture data. Tests run in under a second.
+
+The test data comes from factory functions in `tests/fixtures.py`. Each one builds a fake deed object with the sample data baked in. You can override any field with a keyword argument, so tests stay focused: if you're testing date logic, you only change the dates; everything else stays at defaults.
+
+Here's what each test file covers, in plain English:
+
+---
+
+### `test_pipeline_integration.py` — The Big Picture Test
+
+This is the acceptance test. It runs the **entire pipeline** on the exact OCR text from the assignment, end to end.
+
+| Test | What it checks |
+|---|---|
+| **result is invalid** | The sample deed must be rejected, not accepted |
+| **exactly three errors** | Not 2, not 4 — exactly the 3 known bugs |
+| **DATE_ORDER_ERROR present** | The flipped dates (recorded before signed) are caught |
+| **APN_FORMAT_ERROR present** | The letters in "992-001-XA" are caught |
+| **AMOUNT_MISMATCH_ERROR present** | The $50K digit-vs-words gap is caught |
+| **difference is 50K** | The error reports the exact discrepancy: $50,000 |
+| **no UNKNOWN_COUNTY_ERROR** | "S. Clara" matched successfully — no false alarm |
+| **no INVALID_STATUS_ERROR** | "PRELIMINARY" is a valid status — no false alarm |
+| **no STATE_CODE_ERROR** | "CA" is a real state — no false alarm |
+| **no NOT_A_DEED_ERROR** | The sample IS a deed — preflight must pass |
+| **clean deed passes** | A fixed version of the deed (dates corrected, amounts matching, numeric APN) goes through the pipeline and isn't rejected |
+
+If this file passes, the project does what the brief asked for.
+
+---
+
+### `test_validation_dates.py` — Date Logic
+
+| Test | What it checks |
+|---|---|
+| **date order error is raised** | When recorded < signed, the error fires |
+| **error is the correct type** | It's a `DateOrderError`, not just a string |
+| **error has both dates in details** | The error carries signed="2024-01-15" and recorded="2024-01-10" |
+| **error message mentions both dates** | Human-readable message includes the actual dates |
+| **no error when dates are valid** | Signed=Jan 10, Recorded=Jan 15 — no false alarm |
+| **same day is acceptable** | Signed and recorded on the same date is fine |
+| **garbage date produces parse error** | "not-a-date" triggers `DATE_PARSE_ERROR`, not a crash |
+
+---
+
+### `test_validation_money.py` — Dollar Amount Cross-Check
+
+| Test | What it checks |
+|---|---|
+| **mismatch is raised** | $1,250,000 vs "One Million Two Hundred Thousand" fires an error |
+| **error is the correct type** | It's an `AmountMismatchError` |
+| **numeric value is 1,250,000** | The digit parser got the right number |
+| **words value is 1,200,000** | The word parser got the right number |
+| **difference is 50,000** | The gap is exact |
+| **no error when amounts agree** | If digits and words both say $1,200,000, no error |
+
+---
+
+### `test_money_words.py` — The English-to-Dollars Converter
+
+| Test | What it checks |
+|---|---|
+| **"One Million Two Hundred Thousand"** | The exact phrase from the sample = 1,200,000 |
+| **"One Million Two Hundred Fifty Thousand"** | = 1,250,000 (the "correct" version) |
+| **"Two Hundred Fifty Thousand"** | = 250,000 |
+| **"Three Hundred"** | = 300 |
+| **"Nineteen"** | = 19 |
+| **"One Dollar"** | = 1 |
+| **"Zero"** | = 0 |
+| **"and" conjunction ignored** | "One Hundred and Twenty Three" = 123 |
+| **hyphenated numbers** | "Twenty-Five Thousand" = 25,000 |
+| **unknown word raises error** | "One bazillion" throws ValueError |
+| **empty string returns 0** | Edge case handled |
+
+---
+
+### `test_enrichment_county.py` — Fuzzy County Matching
+
+| Test | What it checks |
+|---|---|
+| **"S. Clara" maps to "Santa Clara"** | The abbreviation is expanded and matched |
+| **confidence is above 80%** | The match score clears the threshold |
+| **tax rate is 0.012** | The correct rate is attached |
+| **county meta has state field** | Metadata says "CA" |
+| **"San Mateo" and "Santa Cruz" match** | Other CA counties work too |
+| **unknown county returns None** | "Xyzzy Nowhere" gets no match |
+| **unknown county confidence is low** | Below 80% — correctly rejected |
+| **validation raises UNKNOWN_COUNTY_ERROR** | When county is None, the error fires |
+
+---
+
+### `test_validation_extended.py` — Everything Else
+
+| Test | What it checks |
+|---|---|
+| **APN with letters triggers error** | "992-001-XA" is invalid |
+| **numeric APN passes** | "992-001-003" is fine |
+| **future signed date triggers error** | Can't sign a deed next month |
+| **future recorded date triggers error** | Can't record a deed next month |
+| **past dates have no future error** | Normal dates don't false-alarm |
+| **stale recording triggers error** | Signed in 2022, recorded in 2024 = suspicious |
+| **normal recording gap is fine** | 36 days between signing and recording is normal |
+| **same grantor and grantee triggers error** | "Acme Corp" selling to "Acme Corp" = self-dealing |
+| **case-insensitive party check** | "ACME CORP" and "acme corp" are treated as the same |
+| **different parties are fine** | Normal buyer/seller pair passes |
+| **zero amount triggers error** | $0 deeds are invalid |
+| **absurdly large amount triggers error** | $999 billion is probably an OCR artifact |
+| **normal amount passes** | $1.2M is within range |
+| **invalid state code "ZZ"** | Not a real US state |
+| **"CA", "FL", "NY" are valid** | Real states pass |
+| **lowercase "ca" is accepted** | Validator normalizes case |
+| **sample produces exactly 3 errors** | Redundant check — the same assertion from the integration test, proving the validate function alone agrees |
+
+---
+
+### `test_fl_ny_specific.py` — Florida & New York Rules
+
+| Test | What it checks |
+|---|---|
+| **Miami-Dade closing cost** | $850K deed: base tax + doc stamps + surtax = $14,875 exactly |
+| **Broward closing cost (no surtax)** | Same amount but no Miami-Dade surtax = $11,050 |
+| **FL deed passes all checks** | A well-formed FL deed gets no errors |
+| **Miami-Dade fuzzy match** | County matching works for FL counties too |
+| **Broward, Palm Beach, Hillsborough match** | Other FL counties work |
+| **Miami-Dade has surtax flag** | Only Miami-Dade carries `has_surtax: true` |
+| **Broward has no surtax** | Other FL counties don't have it |
+| **NY above mansion tax threshold** | $2.5M deed: base + transfer + mansion = $60,625 |
+| **NY below mansion threshold** | $900K deed: base + transfer, no mansion tax = $12,825 |
+| **NY exactly at $1M** | Mansion tax applies at exactly $1M = $24,250 |
+| **NY deed passes all checks** | Well-formed NY deed gets no errors |
+| **NY county matching works** | "New York", "Kings", "Westchester" all match |
+| **NY counties have mansion tax fields** | Metadata carries threshold, rate, transfer rate |
+| **FL deed with NY county = mismatch** | Deed says "FL" but county is in NY — caught |
+| **NY deed with FL county = mismatch** | Deed says "NY" but county is in FL — caught |
+| **correct state-county = no mismatch** | CA+Santa Clara, FL+Miami-Dade, NY+New York all pass |
+
+---
+
+### `test_preflight.py` — The Garbage Filter
+
+| Test | What it checks |
+|---|---|
+| **"hi" is rejected** | Single word, no deed keywords |
+| **"hello how are you" is rejected** | Conversational text |
+| **"The quick brown fox..." is rejected** | Random English sentence |
+| **empty string is rejected** | Nothing to validate |
+| **numbers only is rejected** | "12345 67890" is not a deed |
+| **question about real estate is rejected** | Even mentioning "property" isn't enough without other deed keywords |
+| **code snippet is rejected** | Python code is not a deed |
+| **default OCR text passes** | The sample deed IS a deed — must not be rejected |
+| **minimal deed passes** | A bare-bones doc with "deed", "grantor", "recorded" passes |
+| **Florida deed text passes** | FL-style deed document passes |
+| **New York deed text passes** | NY-style deed document passes |
+| **error has keyword count** | The error tells you how many keywords were found |
+| **error has minimum required** | The error tells you the threshold (3) |
+| **error message is helpful** | Message says "does not appear to be a deed" |
+
+---
+
+## Key Design Choices (What Reviewers Care About)
+
+**Why not let the LLM validate?**
+Because LLMs are probabilistic. If both dates are in January 2024 and look plausible, an LLM might say "looks fine." Python date comparison doesn't have opinions — `Jan 10 < Jan 15` is a fact.
+
+**Why collect all errors instead of stopping at the first one?**
+So the user can fix everything in one pass. Discovering problems one at a time wastes everyone's time.
+
+**Why typed error classes instead of strings?**
+Machine-readable errors let you build on top of this. Route `AmountMismatchError` to a different review queue than `DateOrderError`. Filter by field name. Serialize to JSON for an API. Strings can't do any of that.
+
+**Why compute closing costs last?**
+A deed with bad dates or a dollar mismatch should never get a cost estimate. Computing costs on corrupt data would be misleading. Closing costs only appear when all 16 checks pass.
+
+**Why does the preflight step exist?**
+If someone types "hi" or pastes a recipe, there's no reason to waste an API call on LLM extraction. A quick keyword scan catches obvious non-deed input in microseconds.
+
+**Why SHA-256 hash the input?**
+Traceability. The hash of the original OCR text is embedded in every extracted deed. If someone re-runs the pipeline on modified text, the hash changes. You can always trace a result back to its exact input.
+
+---
+
+## How to Run It
+
+```bash
+# Install
+pip install -e .
+
+# Run the validator on the built-in sample deed (no API key needed)
+python -m deed_validator
+
+# Run all 114 tests
+pytest -v
+
+# Start the web UI (optional)
+pip install -e ".[web]"
+python -m deed_validator.server
+```
+
+No API key required for demo or tests. The system falls back to a static fixture that mirrors LLM output.
+
+---
+
+## In One Sentence
+
+The LLM is a text-reading tool with zero authority — every financial decision is made by deterministic Python code that proves itself with 114 automated tests.
+     
